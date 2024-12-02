@@ -1,6 +1,8 @@
 package com.example.demo.repositories;
 
 import com.example.demo.entities.Cliente;
+import com.example.demo.entities.Tienda;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -12,5 +14,7 @@ public interface ClienteRepository extends JpaRepository<Cliente, Integer> {
 
 	@Query("SELECT c FROM Cliente c WHERE c.documento = :documento AND c.tipoDocumento.nombre = :tipoDocumento")
     Optional<Cliente> findByDocumentoAndTipoDocumento(String documento, String tipoDocumento);
+
+	Optional<Cliente> findByDocumento(String clienteDocumento);
 }
 

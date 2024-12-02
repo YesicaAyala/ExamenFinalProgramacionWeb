@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.FacturaConsultRequest;
 import com.example.demo.dto.FacturaRequest;
 import com.example.demo.dto.FacturaResponse;
 import com.example.demo.exception.ErrorResponse;
@@ -30,4 +31,19 @@ public class FacturaController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponse("error", e.getMessage(), null));
         }
     }
+    // Endpoint for querying an invoice
+    @PostMapping("/consultar/{tiendaUuid}")
+    public ResponseEntity<?> consultarFactura(@PathVariable String tiendaUuid, @RequestBody FacturaConsultRequest facturaConsultRequest) {
+        try {
+            FacturaResponse facturaResponse = facturaService.consultarFactura(tiendaUuid, facturaConsultRequest.getToken(), facturaConsultRequest.getCliente(), facturaConsultRequest.getFactura());
+            return ResponseEntity.status(HttpStatus.OK).body(facturaResponse);
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("error", e.getMessage(), null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponse("error", e.getMessage(), null));
+        }
+    }
+
+    // DTO to handle the request for querying an invoice
+    
 }

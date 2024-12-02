@@ -29,8 +29,5 @@ public class Producto {
 
     @Column(length = 20)
     private String referencia;
-
-    @ManyToOne
-    private Factura factura;
     
 }

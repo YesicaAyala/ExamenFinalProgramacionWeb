@@ -28,7 +28,4 @@ public class Pago {
     @Column
     private Integer cuotas;
     
-    @ManyToOne
-    private Factura factura;
-    
 }

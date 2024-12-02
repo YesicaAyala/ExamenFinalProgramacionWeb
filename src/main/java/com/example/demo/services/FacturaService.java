@@ -133,7 +133,14 @@ public class FacturaService {
 
         compra.setTotal(total);
         compraRepository.save(compra);
-
+        System.out.println(total);
+        System.out.println(total);
+        System.out.println(total);
+        System.out.println(total);
+        System.out.println(total);
+        System.out.println(total);
+        System.out.println(total);
+        
         // Procesar los pagos
         for (PagoRequest pagoRequest : facturaRequest.getMedios_pago()) {
             TipoPago tipoPago = tipoPagoRepository.findByNombre(pagoRequest.getTipo_pago())
@@ -153,7 +160,7 @@ public class FacturaService {
         if (total != totalPagado) {
             return crearRespuestaError("El valor de la factura no coincide con el valor total de los pagos", 403, 0.2);
         }
-
+        
         // Crear respuesta
         FacturaResponse response = new FacturaResponse();
         response.setStatus("success");
@@ -169,6 +176,76 @@ public class FacturaService {
         return response;
     }
 
+ // New method to handle invoice query
+    public FacturaResponse consultarFactura(String tiendaUuid, String token, String clienteDocumento, Integer facturaId) {
+        // Validate token
+        Cajero cajero = cajeroRepository.findByToken(token)
+                .orElseThrow(() -> new NotFoundException("Token no válido para cajero"));
+
+        // Ensure the cashier is assigned to the correct store
+        Tienda tienda = tiendaRepository.findByUuid(tiendaUuid)
+                .orElseThrow(() -> new NotFoundException("Tienda no encontrada"));
+        
+        if (!cajero.getTienda().getUuid().equals(tiendaUuid)) {
+            return crearRespuestaError("Cajero no autorizado para esta tienda", 403, 0.10);
+        }
+
+        // Retrieve the factura (invoice) by its ID
+        Compra compra = compraRepository.findById(facturaId)
+                .orElseThrow(() -> new NotFoundException("Factura no encontrada"));
+
+        // Validate that the client matches the provided document number
+        Cliente cliente = clienteRepository.findByDocumento(clienteDocumento)
+                .orElseThrow(() -> new NotFoundException("Cliente no encontrado"));
+
+        if (!compra.getCliente().getDocumento().equals(clienteDocumento)) {
+            return crearRespuestaError("El documento del cliente no coincide con el de la factura", 403, 0.15);
+        }
+
+        // Build the response with invoice data
+        FacturaResponse response = new FacturaResponse();
+        response.setStatus("success");
+        response.setMessage("Factura consultada correctamente");
+
+        FacturaResponse.FacturaData data = new FacturaResponse.FacturaData();
+        data.setNumero(String.valueOf(compra.getId()));
+        data.setTotal(String.valueOf(compra.getTotal()));
+        data.setFecha(compra.getFecha().toString());
+
+        // Build the client data
+        FacturaResponse.FacturaData.ClienteResponse clienteResponse = new FacturaResponse.FacturaData.ClienteResponse();
+        clienteResponse.setDocumento(cliente.getDocumento());
+        clienteResponse.setNombre(cliente.getNombre());
+        clienteResponse.setTipoDocumento(cliente.getTipoDocumento().getNombre());
+        data.setCliente(clienteResponse);
+
+        // Build product details
+        List<FacturaResponse.FacturaData.ProductoResponse> productos = new ArrayList<>();
+        List<DetallesCompra> detalles = detallesCompraRepository.findByCompra_id(compra.getId());
+        for (DetallesCompra detalle : detalles) {
+            FacturaResponse.FacturaData.ProductoResponse productoResponse = new FacturaResponse.FacturaData.ProductoResponse();
+            productoResponse.setReferencia(detalle.getProducto().getReferencia());
+            productoResponse.setNombre(detalle.getProducto().getNombre());
+            productoResponse.setCantidad(detalle.getCantidad());
+            productoResponse.setPrecio(detalle.getPrecio());
+            productoResponse.setDescuento(detalle.getDescuento());
+            productoResponse.setSubtotal(detalle.getCantidad() * detalle.getPrecio() - detalle.getDescuento());
+            productos.add(productoResponse);
+        }
+        data.setProductos(productos);
+
+        // Build cashier data
+        FacturaResponse.FacturaData.CajeroResponse cajeroResponse = new FacturaResponse.FacturaData.CajeroResponse();
+        cajeroResponse.setDocumento(cajero.getDocumento());
+        cajeroResponse.setNombre(cajero.getNombre());
+        data.setCajero(cajeroResponse);
+
+        response.setData(data);
+        return response;
+    }
+
+
+    
     private FacturaResponse crearRespuestaError(String message, int status, double valor) {
         FacturaResponse response = new FacturaResponse();
         response.setStatus(""+status);
