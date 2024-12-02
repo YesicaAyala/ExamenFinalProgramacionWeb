@@ -11,6 +11,7 @@ public class FacturaResponse {
     private String status;
     private String message;
     private FacturaData data;
+    
     @Data
 	public static class FacturaData {
 		private String numero;
