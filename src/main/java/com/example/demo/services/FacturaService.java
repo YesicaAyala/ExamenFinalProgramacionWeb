@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,11 +28,12 @@ public class FacturaService {
     private final PagoRepository pagoRepository;
     private final ProductoRepository productoRepository;
     private final TipoDocumentoRepository tipoDocumentoRepository;
+    private final TipoPagoRepository tipoPagoRepository;
 
     public FacturaService(ClienteRepository clienteRepository, TiendaRepository tiendaRepository,
                           VendedorRepository vendedorRepository, CajeroRepository cajeroRepository,
                           CompraRepository compraRepository, DetalleCompraRepository detallesCompraRepository,
-                          PagoRepository pagoRepository, ProductoRepository productoRepository, TipoDocumentoRepository tipoDocumentoRepository) {
+                          PagoRepository pagoRepository, ProductoRepository productoRepository, TipoDocumentoRepository tipoDocumentoRepository, TipoPagoRepository tipoPagoRepository) {
         this.clienteRepository = clienteRepository;
         this.tiendaRepository = tiendaRepository;
         this.vendedorRepository = vendedorRepository;
@@ -41,10 +43,13 @@ public class FacturaService {
         this.pagoRepository = pagoRepository;
         this.productoRepository = productoRepository;
 		this.tipoDocumentoRepository = tipoDocumentoRepository;
+		this.tipoPagoRepository = tipoPagoRepository;
     }
 
     public FacturaResponse procesarFactura(String tiendaUuid, FacturaRequest facturaRequest) {
-        // Buscar la tienda
+        
+    	System.out.println(facturaRequest.toString());
+    	// Buscar la tienda
         Tienda tienda = tiendaRepository.findByUuid(tiendaUuid).orElseThrow(() ->
                 new NotFoundException("Tienda no encontrada"));
 
@@ -76,9 +81,10 @@ public class FacturaService {
         compra.setVendedor(vendedor);
         compra.setCajero(cajero);
         compra.setImpuestos(facturaRequest.getImpuesto());
-
+        compra.setFecha(LocalDateTime.now());
         double total = 0;
-
+        compra.setTotal(total);
+        compraRepository.save(compra);
         for (ProductoRequest productoRequest : facturaRequest.getProductos()) {
             Producto producto = productoRepository.findByReferencia(productoRequest.getReferencia())
                     .orElseThrow(() -> new NotFoundException("Producto no encontrado"));
@@ -86,7 +92,7 @@ public class FacturaService {
             double precioFinal = producto.getPrecio() * productoRequest.getCantidad();
             precioFinal -= precioFinal * (productoRequest.getDescuento() / 100);
 
-            DetalleCompra detalles = new DetalleCompra();
+            DetallesCompra detalles = new DetallesCompra();
             detalles.setCompra(compra);
             detalles.setProducto(producto);
             detalles.setCantidad(productoRequest.getCantidad());
@@ -100,15 +106,16 @@ public class FacturaService {
         compra.setTotal(total);
         compraRepository.save(compra);
 
+        
         // Registrar pagos
-        for (PagoRequest pagoRequest : facturaRequest.getMediosPago()) {
-            TipoPago tipoPago = pagoRepository.findTipoPagoByNombre(pagoRequest.getTipoPago())
+        for (PagoRequest pagoRequest : facturaRequest.getMedios_pago()) {
+            TipoPago tipoPago = tipoPagoRepository.findByNombre(pagoRequest.getTipo_pago())
                     .orElseThrow(() -> new NotFoundException("Tipo de pago no encontrado"));
-
+            System.out.println(tipoPago.toString());
             Pago pago = new Pago();
             pago.setCompra(compra);
             pago.setTipoPago(tipoPago);
-            pago.setTarjetaTipo(pagoRequest.getTipoTarjeta());
+            pago.setTarjetaTipo(pagoRequest.getTipo_tarjeta());
             pago.setValor(pagoRequest.getValor());
             pago.setCuotas(pagoRequest.getCuotas());
             pagoRepository.save(pago);
