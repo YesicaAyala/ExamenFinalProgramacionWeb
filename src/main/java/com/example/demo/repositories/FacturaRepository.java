@@ -1,10 +1,10 @@
 package com.example.demo.repositories;
 
-import com.example.demo.entities.Tienda;
+import com.example.demo.entities.Factura;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface TiendaRepository extends JpaRepository<Tienda, Long> {
+public interface FacturaRepository extends JpaRepository<Factura, Long> {
     // Aquí puedes agregar métodos personalizados si es necesario
 }

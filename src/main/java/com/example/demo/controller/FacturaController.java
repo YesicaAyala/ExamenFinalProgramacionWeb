@@ -1,8 +1,10 @@
 package com.example.demo.controller;
 
-import com.example.demo.entities.Compra;
-import com.example.demo.models.FacturaRequest;
+import com.example.demo.dto.FacturaRequest;
+import com.example.demo.dto.FacturaResponse;
 import com.example.demo.services.FacturaService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,14 +14,21 @@ public class FacturaController {
 
     private final FacturaService facturaService;
 
+    @Autowired
     public FacturaController(FacturaService facturaService) {
         this.facturaService = facturaService;
     }
 
+    // Endpoint para procesar la factura
     @PostMapping("/{tiendaId}")
-    public ResponseEntity<Compra> procesarFactura(@RequestBody FacturaRequest facturaRequest,
-                                                  @PathVariable Long tiendaId) {
-        Compra compra = facturaService.procesarFactura(facturaRequest, tiendaId);
-        return ResponseEntity.ok(compra);
+    public ResponseEntity<FacturaResponse> procesarFactura(
+            @PathVariable Long tiendaId, 
+            @RequestBody FacturaRequest facturaRequest) {
+        
+        // Llamada al servicio para procesar la factura
+        FacturaResponse response = facturaService.procesarFactura(tiendaId, facturaRequest);
+        
+        // Retornar la respuesta formateada con un estado 200 (OK)
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }

@@ -46,7 +46,6 @@ public class FacturaServiceImpl implements FacturaService {
     }
 
     @Transactional
-    @Override
     public Compra procesarFactura(FacturaRequest facturaRequest, Long tiendaId) {
         // Validar existencia de la tienda
         Tienda tienda = tiendaRepository.findById(tiendaId)
