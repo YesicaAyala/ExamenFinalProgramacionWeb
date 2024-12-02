@@ -56,6 +56,7 @@ public class FacturaService {
                     nuevoCliente.setNombre(facturaRequest.getCliente().getNombre());
                     nuevoCliente.setDocumento(facturaRequest.getCliente().getDocumento());
                     TipoDocumento tipoDocumento = tipoDocumentoRepository.findByNombre(facturaRequest.getCliente().getTipoDocumento());
+                    
                     nuevoCliente.setTipoDocumento(tipoDocumento);
                     return clienteRepository.save(nuevoCliente);
                 });
