@@ -1,5 +1,7 @@
 package com.example.demo.dto;
 
+import com.example.demo.entities.TipoDocumento;
+
 import lombok.Data;
 
 @Data
